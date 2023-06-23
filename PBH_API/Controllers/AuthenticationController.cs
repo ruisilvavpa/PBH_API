@@ -84,6 +84,7 @@ namespace PBH_API.Controllers
             }
         }
 
+        //POST authentication/login
         [HttpPost("login")]
         public async Task<IActionResult> Login(Login login)
         {
@@ -142,8 +143,6 @@ namespace PBH_API.Controllers
                         sessionToken.UserId = insertedId ?? 0;
                         return Ok(sessionToken);
                     }
-
-
                 }
             }
         }

@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using PBH_API.Helper;
 using PBH_API.Models;
 using System.Data;
+using System.Reflection.PortableExecutable;
 
 namespace PBH_API.Controllers
 {
@@ -23,6 +24,8 @@ namespace PBH_API.Controllers
             var headers = Request.Headers;
             if (headers.TryGetValue("Token", out var headerValue))
             {
+                var token = headerValue.ToString();
+
                 using (SqlConnection connection = new SqlConnection(_connectionString))
                 {
                     await connection.OpenAsync();
@@ -31,34 +34,92 @@ namespace PBH_API.Controllers
                     {
                         command.CommandType = CommandType.StoredProcedure;
 
-                        command.Parameters.AddWithValue("@Token", headerValue);
-
-                        var insertedIdParameter = new SqlParameter("@InsertedId", SqlDbType.Int);
-                        insertedIdParameter.Direction = ParameterDirection.Output;
-                        command.Parameters.Add(insertedIdParameter);
-
+                        command.Parameters.AddWithValue("@Token", token);
                         await command.ExecuteNonQueryAsync();
 
-                        int? insertedId = insertedIdParameter.Value as int?;
-
-                        if (insertedId == null)
+                        using (var reader = await command.ExecuteReaderAsync())
                         {
-                            return Unauthorized("User not found");
-                        }
-                        UserHelper userHelper = new UserHelper();
-                        UsersOut? user = await userHelper.GetUserById(insertedId ?? 0, _connectionString);
+                            if (await reader.ReadAsync())
+                            {
+                                var userID = reader.GetInt32(reader.GetOrdinal("User_Id"));
+                                
+                                if (userID == 0)
+                                {
+                                    return Unauthorized("User not found");
+                                }
+                                UserHelper userHelper = new UserHelper();
+                                UsersOut? user = await userHelper.GetUserById(userID, connectionString: _connectionString);
 
-                        return Ok(user);
+                                var responseObj = new
+                                {
+                                    HeaderValue = headerValue,
+                                    User = user
+                                };
+
+                                return Ok(responseObj);
+                            }
+                        }
                     }
+                    return NotFound("Header não fornecido");
+
                 }
 
             }
             else
             {
-                // O header não foi encontrado
-                // Retorne uma resposta de erro
                 return NotFound("Header não fornecido");
             }
         }
+
+        //GET writtersByTypeAccount
+        [HttpGet("writters")]
+        public async Task<IActionResult> GetUsersByTypeAccount1()
+        {
+            List<UsersOut> users = new List<UsersOut>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                using (SqlCommand command = new SqlCommand("GetUserByTypeAccount1", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    connection.Open();
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            UsersOut user = new UsersOut();
+
+                            user.Id = reader.GetInt32(reader.GetOrdinal("User_Id"));
+                            user.Name = reader.GetString(reader.GetOrdinal("Name"));
+                            user.Email = reader.GetString(reader.GetOrdinal("Email"));
+                            user.Type = reader.GetInt32(reader.GetOrdinal("TypeAccount"));
+                            int bioOrdinal = reader.GetOrdinal("Bio");
+                            if (!reader.IsDBNull(bioOrdinal))
+                            {
+                                user.Bio = reader.GetString(bioOrdinal);
+                            }
+
+                            users.Add(user);
+                        }
+                    }
+                    
+                }
+                
+            }
+
+            return Ok(users);
+        }
+
+        //GET userById
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUsersById(int userId)
+        {
+            UserHelper userHelper = new UserHelper();
+            UsersOut? user = await userHelper.GetUserById(userId, connectionString: _connectionString);
+            return Ok(user);
+        }
+
     }
 }
