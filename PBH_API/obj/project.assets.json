@@ -3110,11 +3110,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Ruisi\\Desktop\\ProjetoFinalCurso\\PBH_API\\PBH_API\\PBH_API.csproj",
+      "projectUniqueName": "C:\\Users\\Ruisi\\OneDrive\\Documents\\GitHub\\PBH_API\\PBH_API\\PBH_API.csproj",
       "projectName": "PBH_API",
-      "projectPath": "C:\\Users\\Ruisi\\Desktop\\ProjetoFinalCurso\\PBH_API\\PBH_API\\PBH_API.csproj",
+      "projectPath": "C:\\Users\\Ruisi\\OneDrive\\Documents\\GitHub\\PBH_API\\PBH_API\\PBH_API.csproj",
       "packagesPath": "C:\\Users\\Ruisi\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Ruisi\\Desktop\\ProjetoFinalCurso\\PBH_API\\PBH_API\\obj\\",
+      "outputPath": "C:\\Users\\Ruisi\\OneDrive\\Documents\\GitHub\\PBH_API\\PBH_API\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\Ruisi\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -3125,6 +3125,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\sdk\\7.0.304\\Sdks\\Microsoft.NET.Sdk.Web\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -3173,6 +3174,24 @@
         ],
         "assetTargetFallback": true,
         "warn": true,
+        "downloadDependencies": [
+          {
+            "name": "Microsoft.AspNetCore.App.Ref",
+            "version": "[6.0.18, 6.0.18]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Host.win-x64",
+            "version": "[6.0.18, 6.0.18]"
+          },
+          {
+            "name": "Microsoft.NETCore.App.Ref",
+            "version": "[6.0.18, 6.0.18]"
+          },
+          {
+            "name": "Microsoft.WindowsDesktop.App.Ref",
+            "version": "[6.0.18, 6.0.18]"
+          }
+        ],
         "frameworkReferences": {
           "Microsoft.AspNetCore.App": {
             "privateAssets": "none"
@@ -3181,7 +3200,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.203\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.304\\RuntimeIdentifierGraph.json"
       }
     }
   }
