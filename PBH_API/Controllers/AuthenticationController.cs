@@ -146,5 +146,35 @@ namespace PBH_API.Controllers
                 }
             }
         }
+
+        //GET api/authentication/logout
+        [HttpGet("logout")]
+        public async Task<IActionResult> logout()
+        {
+            var headers = Request.Headers;
+            if (headers.TryGetValue("Token", out var headerValue))
+            {
+                var token = headerValue.ToString();
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (SqlCommand command = new SqlCommand("dbo.Logout", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        command.Parameters.AddWithValue("@Token", token);
+                        await command.ExecuteNonQueryAsync();
+                    }
+                    return Ok();
+                }
+
+            }
+            else
+            {
+                return NotFound("Header não fornecido");
+            }
+        }
     }
 }

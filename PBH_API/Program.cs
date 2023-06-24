@@ -4,7 +4,7 @@ using System;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddSingleton("Data Source=FoxisteM;Initial Catalog=PBHDB;User ID=sa;Password=FoxHitler;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False");
+builder.Services.AddSingleton("Data Source=RUISILVA;Initial Catalog=PBHDB;User ID=sa;Password=12345Abc!;Connect Timeout=30;Encrypt=False;Trust Server Certificate=False;Application Intent=ReadWrite;Multi Subnet Failover=False");
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

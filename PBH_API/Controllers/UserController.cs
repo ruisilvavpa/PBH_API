@@ -121,5 +121,121 @@ namespace PBH_API.Controllers
             return Ok(user);
         }
 
+
+        // PUT api/user/{userId}
+        [HttpPut("{userId}")]
+        public async Task<IActionResult> UpdateUser(int userId, [FromBody] UsersOut user)
+        {
+            var headers = Request.Headers;
+            if (headers.TryGetValue("Token", out var headerValue))
+            {
+                var token = headerValue.ToString();
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (SqlCommand command = new SqlCommand("dbo.UpdateUser", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@Token", token);
+
+                        int loggedInUserId = (int)await command.ExecuteScalarAsync();
+
+                        if (loggedInUserId == 0)
+                        {
+                            return Unauthorized("User não encontrado");
+                        }
+
+                        if (loggedInUserId != userId)
+                        {
+                            return Unauthorized("Não é possível atualizar as informações de outro user");
+                        }
+
+                        using (SqlConnection updateConnection = new SqlConnection(_connectionString))
+                        {
+                            await updateConnection.OpenAsync();
+
+                            using (SqlCommand updateCommand = new SqlCommand("dbo.UpdateUser", updateConnection))
+                            {
+                                updateCommand.CommandType = CommandType.StoredProcedure;
+
+                                updateCommand.Parameters.AddWithValue("@UserId", userId);
+                                updateCommand.Parameters.AddWithValue("@Name", user.Name);
+                                updateCommand.Parameters.AddWithValue("@Email", user.Email);
+                                updateCommand.Parameters.AddWithValue("@Bio", user.Bio);
+
+                                await updateCommand.ExecuteNonQueryAsync();
+                            }
+                        }
+                    }
+                }
+
+                return Ok();
+            }
+            else
+            {
+                return NotFound("Header não fornecido");
+            }
+        }
+
+
+
+        //DELETE api/user
+        [HttpDelete]
+        public async Task<IActionResult> DeleteById()
+        {
+            var headers = Request.Headers;
+            if (headers.TryGetValue("Token", out var headerValue))
+            {
+                var token = headerValue.ToString();
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (SqlCommand command = new SqlCommand("dbo.GetUserIdByToken", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        command.Parameters.AddWithValue("@Token", token);
+                        await command.ExecuteNonQueryAsync();
+
+                        using (var reader = await command.ExecuteReaderAsync())
+                        {
+                            if (await reader.ReadAsync())
+                            {
+                                var userID = reader.GetInt32(reader.GetOrdinal("User_Id"));
+
+                                if (userID == 0)
+                                {
+                                    return Unauthorized("User not found");
+
+                                }
+                                using (SqlConnection secondConnection = new SqlConnection(_connectionString))
+                                {
+                                    await secondConnection.OpenAsync();
+                                    using (SqlCommand secondcommand = new SqlCommand("dbo.DeleteUser", secondConnection))
+                                    {
+                                        secondcommand.CommandType = CommandType.StoredProcedure;
+                                        secondcommand.Parameters.AddWithValue("@UserId", userID);
+
+                                        await secondcommand.ExecuteNonQueryAsync();
+                                    }
+                                }
+                                
+                            }
+                            
+                        }
+                    }
+                }
+                return Ok();
+            }
+            else
+            {
+                return NotFound("Header não fornecido");
+            }
+        }
+
     }
 }
