@@ -122,9 +122,9 @@ namespace PBH_API.Controllers
         }
 
 
-        // PUT api/user/{userId}
-        [HttpPut("{userId}")]
-        public async Task<IActionResult> UpdateUser(int userId, [FromBody] UsersOut user)
+        // PUT api/user
+        [HttpPut]
+        public async Task<IActionResult> UpdateUser([FromBody] UsersOut user)
         {
             var headers = Request.Headers;
             if (headers.TryGetValue("Token", out var headerValue))
@@ -135,7 +135,7 @@ namespace PBH_API.Controllers
                 {
                     await connection.OpenAsync();
 
-                    using (SqlCommand command = new SqlCommand("dbo.UpdateUser", connection))
+                    using (SqlCommand command = new SqlCommand("dbo.GetUserIdByToken", connection))
                     {
                         command.CommandType = CommandType.StoredProcedure;
                         command.Parameters.AddWithValue("@Token", token);
@@ -147,7 +147,7 @@ namespace PBH_API.Controllers
                             return Unauthorized("User não encontrado");
                         }
 
-                        if (loggedInUserId != userId)
+                        if (loggedInUserId != user.Id)
                         {
                             return Unauthorized("Não é possível atualizar as informações de outro user");
                         }
@@ -160,7 +160,7 @@ namespace PBH_API.Controllers
                             {
                                 updateCommand.CommandType = CommandType.StoredProcedure;
 
-                                updateCommand.Parameters.AddWithValue("@UserId", userId);
+                                updateCommand.Parameters.AddWithValue("@UserId", user.Id);
                                 updateCommand.Parameters.AddWithValue("@Name", user.Name);
                                 updateCommand.Parameters.AddWithValue("@Email", user.Email);
                                 updateCommand.Parameters.AddWithValue("@Bio", user.Bio);
