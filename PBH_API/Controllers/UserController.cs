@@ -237,5 +237,64 @@ namespace PBH_API.Controllers
             }
         }
 
+        //PUT
+        [HttpPut("changePassword")]
+        public async Task<IActionResult> UpdatePassword([FromBody] ChangePassword password)
+        {
+
+            if (password.newPassword != password.confirmPassword)
+            {
+                return ValidationProblem();
+            }
+
+            var headers = Request.Headers;
+            if (headers.TryGetValue("Token", out var headerValue))
+            {
+                var token = headerValue.ToString();
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (SqlCommand command = new SqlCommand("dbo.GetUserIdByToken", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@Token", token);
+
+                        int loggedInUserId = (int)await command.ExecuteScalarAsync();
+
+                        if (loggedInUserId == 0)
+                        {
+                            return Unauthorized("User não encontrado");
+                        }
+                       
+
+
+                        using (SqlConnection updateConnection = new SqlConnection(_connectionString))
+                        {
+                            await updateConnection.OpenAsync();
+
+                            using (SqlCommand updateCommand = new SqlCommand("dbo.ResetPassword", updateConnection))
+                            {
+                                updateCommand.CommandType = CommandType.StoredProcedure;
+
+                                updateCommand.Parameters.AddWithValue("@Password", password.oldPassword);
+                                updateCommand.Parameters.AddWithValue("@NewPassword", password.newPassword);
+                                updateCommand.Parameters.AddWithValue("@UserId", loggedInUserId);
+
+                                await updateCommand.ExecuteNonQueryAsync();
+                            }
+                        }
+                    }
+                }
+
+                return Ok();
+            }
+            else
+            {
+                return NotFound("Header não fornecido");
+            }
+        }
+
     }
 }
