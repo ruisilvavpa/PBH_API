@@ -45,5 +45,65 @@ namespace PBH_API.Controllers
             return Ok(categories);
         }
 
+        [HttpPost]
+        public async Task<int> InsertBook(BooksIn book)
+        {
+
+            var headers = Request.Headers;
+            if (headers.TryGetValue("Token", out var headerValue))
+            {
+                var token = headerValue.ToString();
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (SqlCommand command = new SqlCommand("dbo.GetUserIdByToken", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@Token", token);
+
+                        int loggedInUserId = (int)await command.ExecuteScalarAsync();
+
+                        if (loggedInUserId == 0)
+                        {
+                            throw new Exception("Failed to retrieve the book ID.");
+                        }
+
+                        using (SqlConnection secondConnection = new SqlConnection(_connectionString))
+                        {
+                            await secondConnection.OpenAsync();
+
+                            using (SqlCommand secondCommand = new SqlCommand("dbo.AddBook", secondConnection))
+                            {
+                                secondCommand.CommandType = CommandType.StoredProcedure;
+
+                                secondCommand.Parameters.AddWithValue("@Title", book.Title);
+                                secondCommand.Parameters.AddWithValue("@Category_Id", book.Category_Id);
+                                secondCommand.Parameters.AddWithValue("@Description", book.Description);
+                                secondCommand.Parameters.AddWithValue("@Media_Rating", book.Media_Rating);
+                                secondCommand.Parameters.AddWithValue("@Goal", book.Goal);
+                                secondCommand.Parameters.AddWithValue("@User_Id", loggedInUserId);
+                                secondCommand.Parameters.AddWithValue("@Institution_Id", book.Institution_Id);
+
+                                var result = await secondCommand.ExecuteScalarAsync();
+
+                                if (int.TryParse(result.ToString(), out int bookId))
+                                {
+                                    return bookId;
+                                }
+                                else
+                                {
+                                    // Erro ao obter o ID do livro inserido
+                                    throw new Exception("Failed to retrieve the book ID.");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            throw new Exception("Failed to retrieve the header.");
+
+        }
     }
 }
