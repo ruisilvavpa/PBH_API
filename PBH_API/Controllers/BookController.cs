@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using PBH_API.Models;
 using System.Data;
 
 namespace PBH_API.Controllers
@@ -18,6 +19,8 @@ namespace PBH_API.Controllers
         [HttpGet("categories")]
         public async Task<IActionResult> GetBookCategories()
         {
+            List<BookCategories> categories = new List<BookCategories>();
+
             using (SqlConnection connection = new SqlConnection(_connectionString))
             {
                 await connection.OpenAsync();
@@ -28,18 +31,19 @@ namespace PBH_API.Controllers
 
                     using (SqlDataReader reader = await command.ExecuteReaderAsync())
                     {
-                        List<string> categories = new List<string>();
-
                         while (reader.Read())
                         {
-                            string categoryName = reader["CategoryName"].ToString();
-                            categories.Add(categoryName);
+                            BookCategories category = new BookCategories();
+                            category.Caterogy_Id = reader.GetInt32(reader.GetOrdinal("Category_Id"));
+                            category.Category_Name = reader.GetString(reader.GetOrdinal("CategoryName"));
+                            categories.Add(category);
                         }
-
-                        return Ok(categories);
                     }
                 }
             }
+
+            return Ok(categories);
         }
+
     }
 }
