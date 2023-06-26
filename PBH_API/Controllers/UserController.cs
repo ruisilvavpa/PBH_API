@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using PBH_API.Helper;
 using PBH_API.Models;
 using System.Data;
+using System.Net;
 using System.Reflection.PortableExecutable;
 
 namespace PBH_API.Controllers
@@ -12,11 +15,14 @@ namespace PBH_API.Controllers
     public class UserController : ControllerBase
     {
         private readonly string _connectionString;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public UserController(string connectionString)
+        public UserController(string connectionString, IWebHostEnvironment webHostEnvironment)
         {
             _connectionString = connectionString;
+            _webHostEnvironment = webHostEnvironment;
         }
+
         //GET api/user/me
         [HttpGet("me")]
         public async Task<IActionResult> GetMe()
@@ -296,7 +302,89 @@ namespace PBH_API.Controllers
             }
         }
 
+        //PUT
+        [HttpPut("userImage")]
+        public async Task<IActionResult> UpdateUserImage([FromForm] Image form)
+        {
+            var headers = Request.Headers;
+            if (headers.TryGetValue("Token", out var headerValue))
+            {
+                var token = headerValue.ToString();
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (SqlCommand command = new SqlCommand("dbo.GetUserIdByToken", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@Token", token);
+
+                        int loggedInUserId = (int) await command.ExecuteScalarAsync();
+
+                        if (loggedInUserId == 0)
+                        {
+                            return Unauthorized("User não encontrado");
+                        }
+                        string imagePath = storeUserImage(form.ImageSent, loggedInUserId.ToString());
 
 
+                        using (SqlConnection updateConnection = new SqlConnection(_connectionString))
+                        {
+                            await updateConnection.OpenAsync();
+
+                            using (SqlCommand updateCommand = new SqlCommand("dbo.UpdateUserImage", updateConnection))
+                            {
+                                updateCommand.CommandType = CommandType.StoredProcedure;
+
+                                updateCommand.Parameters.AddWithValue("@ImagePath", imagePath);
+                                updateCommand.Parameters.AddWithValue("@UserId", loggedInUserId);
+
+                                await updateCommand.ExecuteNonQueryAsync();
+                            }
+                        }
+                    }
+                }
+
+                return Ok();
+            }
+            else
+            {
+                return NotFound("Header não fornecido");
+            }
+        }
+
+        //Store client image 
+        private string storeUserImage(IFormFile? clientImage, string clientName)
+        {
+
+            string imagePath = "";
+            try
+            {
+                if (clientImage != null && clientImage.Length > 0)
+                {
+                    string path = _webHostEnvironment.WebRootPath + "\\uploads\\clientsImages\\";
+                    if (!Directory.Exists(path))
+                    {
+                        Directory.CreateDirectory(path);
+                    }
+                    imagePath = path + clientName.Trim()
+                        + "_" + DateTime.Now.ToString("yyyyMMddHHmmss")
+                        + "_" + clientImage.FileName; ;
+
+                    using (FileStream fileStream = System.IO.File.Create(imagePath))
+                    {
+                        clientImage.CopyTo(fileStream);
+                        fileStream.Flush();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+            return imagePath;
+        }
     }
 }
