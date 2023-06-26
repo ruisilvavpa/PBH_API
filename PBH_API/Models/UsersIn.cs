@@ -6,5 +6,6 @@
         public String Email  { get; set; }
         public String Password { get; set; }
         public int Type { get; set; }
+
     }
 }
