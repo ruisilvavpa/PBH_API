@@ -15,6 +15,40 @@ namespace PBH_API.Controllers
 		{
 			_connectionString = connectionString;
 		}
+		[HttpPost("insertBook")]
+		public async Task<IActionResult> CreateBook(Book book)
+		{
+			if (!ModelState.IsValid)
+			{
+				return BadRequest(ModelState);
+			}
+			using (SqlConnection connection = new SqlConnection(_connectionString))
+			{
+				await connection.OpenAsync();
+				using (SqlCommand command = new SqlCommand("insertBook", connection))
+				{
+					command.CommandType = CommandType.StoredProcedure;
+					command.Parameters.AddWithValue("@Title", book.Title);
+					command.Parameters.AddWithValue("@Category", book.Category);
+					command.Parameters.AddWithValue("@Description", book.Description);
+					command.Parameters.AddWithValue("@Media_Rating", book.Media_Rating);
+					command.Parameters.AddWithValue("@Goal", book.Goal);
+					command.Parameters.AddWithValue("@User_Id", book.User_Id);
+					command.Parameters.AddWithValue("@Insitution_Id", book.Institution_Id);
+
+
+					await command.ExecuteNonQueryAsync();
+
+					// Return a success response
+					return Ok(book);
+
+
+
+				}
+			}
+		}
+
+
 
 		[HttpGet("getAllBooks")]
 
@@ -113,6 +147,7 @@ namespace PBH_API.Controllers
 				}
 			}
 		}
+
 
 
 	}
