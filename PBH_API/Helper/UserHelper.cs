@@ -25,10 +25,15 @@ namespace PBH_API.Helper
                         {
                             UsersOut user = new UsersOut();
                             {
+                                user.Id = reader.GetInt32(reader.GetOrdinal("User_Id"));
                                 user.Name = reader.GetString(reader.GetOrdinal("Name"));
                                 user.Email = reader.GetString(reader.GetOrdinal("Email"));
                                 user.Type = reader.GetInt32(reader.GetOrdinal("TypeAccount"));
-                                user.Bio = reader.GetString(reader.GetOrdinal("Bio"));
+                                int bioOrdinal = reader.GetOrdinal("Bio");
+                                if (!reader.IsDBNull(bioOrdinal))
+                                {
+                                    user.Bio = reader.GetString(bioOrdinal);
+                                }
                             }
                             return user;
                         }
@@ -47,7 +52,7 @@ namespace PBH_API.Helper
                 using (var command = new SqlCommand("dbo.GetUserById", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@User_Id", id);
+                    command.Parameters.AddWithValue("@UserId", id);
 
                     using (var reader = await command.ExecuteReaderAsync())
                     {
@@ -55,10 +60,15 @@ namespace PBH_API.Helper
                         {
                             UsersOut user = new UsersOut();
                             {
+                                user.Id = reader.GetInt32(reader.GetOrdinal("User_Id"));
                                 user.Name = reader.GetString(reader.GetOrdinal("Name"));
                                 user.Email = reader.GetString(reader.GetOrdinal("Email"));
                                 user.Type = reader.GetInt32(reader.GetOrdinal("TypeAccount"));
-                                user.Bio = reader.GetString(reader.GetOrdinal("Bio"));
+                                int bioOrdinal = reader.GetOrdinal("Bio");
+                                if (!reader.IsDBNull(bioOrdinal))
+                                {
+                                    user.Bio = reader.GetString(bioOrdinal);
+                                }
                             }
                             return user;
                         }

@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Ruisi\\Desktop\\ProjetoFinalCurso\\PBH_API\\PBH_API\\PBH_API.csproj": {}
+    "C:\\Users\\Ruisi\\Documents\\IPCA\\PBH_API\\PBH_API\\PBH_API.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Ruisi\\Desktop\\ProjetoFinalCurso\\PBH_API\\PBH_API\\PBH_API.csproj": {
+    "C:\\Users\\Ruisi\\Documents\\IPCA\\PBH_API\\PBH_API\\PBH_API.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Ruisi\\Desktop\\ProjetoFinalCurso\\PBH_API\\PBH_API\\PBH_API.csproj",
+        "projectUniqueName": "C:\\Users\\Ruisi\\Documents\\IPCA\\PBH_API\\PBH_API\\PBH_API.csproj",
         "projectName": "PBH_API",
-        "projectPath": "C:\\Users\\Ruisi\\Desktop\\ProjetoFinalCurso\\PBH_API\\PBH_API\\PBH_API.csproj",
+        "projectPath": "C:\\Users\\Ruisi\\Documents\\IPCA\\PBH_API\\PBH_API\\PBH_API.csproj",
         "packagesPath": "C:\\Users\\Ruisi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Ruisi\\Desktop\\ProjetoFinalCurso\\PBH_API\\PBH_API\\obj\\",
+        "outputPath": "C:\\Users\\Ruisi\\Documents\\IPCA\\PBH_API\\PBH_API\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Ruisi\\AppData\\Roaming\\NuGet\\NuGet.Config",
