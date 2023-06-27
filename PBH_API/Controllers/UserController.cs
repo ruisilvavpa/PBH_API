@@ -364,12 +364,13 @@ namespace PBH_API.Controllers
             {
                 if (clientImage != null && clientImage.Length > 0)
                 {
-                    string path = _webHostEnvironment.WebRootPath + "\\uploads\\clientsImages\\";
-                    if (!Directory.Exists(path))
+                    string basePath = Directory.GetCurrentDirectory();
+                    string uploadsPath = Path.Combine(basePath, "uploads", "clientsImages");
+                    if (!Directory.Exists(uploadsPath))
                     {
-                        Directory.CreateDirectory(path);
+                        Directory.CreateDirectory(uploadsPath);
                     }
-                    imagePath = path + clientName.Trim()
+                    imagePath = uploadsPath + clientName.Trim()
                         + "_" + DateTime.Now.ToString("yyyyMMddHHmmss")
                         + "_" + clientImage.FileName; ;
 
