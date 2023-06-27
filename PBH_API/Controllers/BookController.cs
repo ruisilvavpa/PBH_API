@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using PBH_API.Models;
 using System.Data;
+using PBH_API.Helper;
 
 namespace PBH_API.Controllers
 {
@@ -194,6 +195,59 @@ namespace PBH_API.Controllers
                         }
                     }
                 }
+            }
+        }
+
+        //PUT
+        [HttpPut("bookImage/{id}")]
+        public async Task<IActionResult> UpdateBookImage([FromForm] Image form, String id)
+        {
+            var headers = Request.Headers;
+            if (headers.TryGetValue("Token", out var headerValue))
+            {
+                var token = headerValue.ToString();
+
+                using (SqlConnection connection = new SqlConnection(_connectionString))
+                {
+                    await connection.OpenAsync();
+
+                    using (SqlCommand command = new SqlCommand("dbo.GetUserIdByToken", connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@Token", token);
+
+                        int loggedInUserId = (int)await command.ExecuteScalarAsync();
+
+                        if (loggedInUserId == 0)
+                        {
+                            return Unauthorized("User não encontrado");
+                        }
+                        var imageHelper = new ImageHelper();
+                        string imagePath = imageHelper.storeImage(form.ImageSent, id);
+
+
+                        using (SqlConnection updateConnection = new SqlConnection(_connectionString))
+                        {
+                            await updateConnection.OpenAsync();
+
+                            using (SqlCommand updateCommand = new SqlCommand("dbo.UpdateBookImage", updateConnection))
+                            {
+                                updateCommand.CommandType = CommandType.StoredProcedure;
+
+                                updateCommand.Parameters.AddWithValue("@ImagePath", imagePath);
+                                updateCommand.Parameters.AddWithValue("@BookId", int.Parse(id));
+
+                                await updateCommand.ExecuteNonQueryAsync();
+                            }
+                        }
+                    }
+                }
+
+                return Ok();
+            }
+            else
+            {
+                return NotFound("Header não fornecido");
             }
         }
     }

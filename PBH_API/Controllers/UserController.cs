@@ -55,7 +55,7 @@ namespace PBH_API.Controllers
                                     return Unauthorized("User not found");
                                 }
                                 UserHelper userHelper = new UserHelper();
-                                UsersOut? user = await userHelper.GetUserById(userID, connectionString: _connectionString);
+                                UsersOut? user = await userHelper.GetUserById(userID.ToString(), connectionString: _connectionString);
 
                                 var responseObj = new
                                 {
@@ -121,10 +121,10 @@ namespace PBH_API.Controllers
 
         //GET userById
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetUsersById(int userId)
+        public async Task<IActionResult> GetUsersById(String id)
         {
             UserHelper userHelper = new UserHelper();
-            UsersOut? user = await userHelper.GetUserById(userId, connectionString: _connectionString);
+            UsersOut? user = await userHelper.GetUserById(id, connectionString: _connectionString);
             return Ok(user);
         }
 
@@ -327,7 +327,8 @@ namespace PBH_API.Controllers
                         {
                             return Unauthorized("User não encontrado");
                         }
-                        string imagePath = storeUserImage(form.ImageSent, loggedInUserId.ToString());
+                        var imageHelper = new ImageHelper();
+                        string imagePath = imageHelper.storeImage(form.ImageSent, loggedInUserId.ToString());
 
 
                         using (SqlConnection updateConnection = new SqlConnection(_connectionString))
@@ -353,40 +354,6 @@ namespace PBH_API.Controllers
             {
                 return NotFound("Header não fornecido");
             }
-        }
-
-        //Store client image 
-        private string storeUserImage(IFormFile? clientImage, string clientName)
-        {
-
-            string imagePath = "";
-            try
-            {
-                if (clientImage != null && clientImage.Length > 0)
-                {
-                    string basePath = Directory.GetCurrentDirectory();
-                    string uploadsPath = Path.Combine(basePath, "uploads", "clientsImages");
-                    if (!Directory.Exists(uploadsPath))
-                    {
-                        Directory.CreateDirectory(uploadsPath);
-                    }
-                    imagePath = uploadsPath + clientName.Trim()
-                        + "_" + DateTime.Now.ToString("yyyyMMddHHmmss")
-                        + "_" + clientImage.FileName; ;
-
-                    using (FileStream fileStream = System.IO.File.Create(imagePath))
-                    {
-                        clientImage.CopyTo(fileStream);
-                        fileStream.Flush();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                throw;
-            }
-            return imagePath;
         }
 
 		[HttpGet("getWritterByBook")]

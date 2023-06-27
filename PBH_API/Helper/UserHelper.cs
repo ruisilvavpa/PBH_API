@@ -48,7 +48,7 @@ namespace PBH_API.Helper
             }
         }
 
-        public async Task<UsersOut?> GetUserById(int id, string connectionString)
+        public async Task<UsersOut?> GetUserById(String id, string connectionString)
         {
             using (var connection = new SqlConnection(connectionString))
             {
@@ -57,7 +57,7 @@ namespace PBH_API.Helper
                 using (var command = new SqlCommand("dbo.GetUserById", connection))
                 {
                     command.CommandType = CommandType.StoredProcedure;
-                    command.Parameters.AddWithValue("@UserId", id);
+                    command.Parameters.AddWithValue("@UserId", int.Parse(id));
 
                     using (var reader = await command.ExecuteReaderAsync())
                     {
