@@ -34,6 +34,11 @@ namespace PBH_API.Helper
                                 {
                                     user.Bio = reader.GetString(bioOrdinal);
                                 }
+                                int imagePathOrdinal= reader.GetOrdinal("ImagePath");
+                                if (!reader.IsDBNull(imagePathOrdinal))
+                                {
+                                    user.ImagePath = reader.GetString(imagePathOrdinal);
+                                }
                             }
                             return user;
                         }
@@ -68,6 +73,11 @@ namespace PBH_API.Helper
                                 if (!reader.IsDBNull(bioOrdinal))
                                 {
                                     user.Bio = reader.GetString(bioOrdinal);
+                                }
+                                int imagePathOrdinal = reader.GetOrdinal("ImagePath");
+                                if (!reader.IsDBNull(imagePathOrdinal))
+                                {
+                                    user.ImagePath = reader.GetString(imagePathOrdinal);
                                 }
                             }
                             return user;
