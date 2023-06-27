@@ -17,7 +17,7 @@ namespace PBH_API.Controllers
 			_connectionString = connectionString;
 		}
 		[HttpPost("insertDonation")]
-		public async Task<IActionResult> CreateDonation(Donation donation)
+		public async Task<IActionResult> CreateDonation(DonationIn donation)
 		{
 			var headers = Request.Headers;
 			if (headers.TryGetValue("Token", out var headerValue))
@@ -37,9 +37,9 @@ namespace PBH_API.Controllers
 						{
 							if (await reader.ReadAsync())
 							{
-								donation.UserId = reader.GetInt32(reader.GetOrdinal("User_Id"));
+								var userId = reader.GetInt32(reader.GetOrdinal("User_Id"));
 
-								if (donation.UserId == 0)
+								if (userId == 0)
 								{
 									return Unauthorized("User not found");
 								}
@@ -47,8 +47,8 @@ namespace PBH_API.Controllers
 								using (SqlCommand insertDonationCommand = new SqlCommand("dbo.insertDonation", connection))
 								{
 									insertDonationCommand.CommandType = CommandType.StoredProcedure;
-									insertDonationCommand.Parameters.AddWithValue("@UserId", donation.UserId);
-									insertDonationCommand.Parameters.AddWithValue("@BookId", donation.BookId);
+									insertDonationCommand.Parameters.AddWithValue("@User_Id", userId);
+									insertDonationCommand.Parameters.AddWithValue("@Book_Id", donation.BookId);
 									insertDonationCommand.Parameters.AddWithValue("@DonationAmount", donation.DonationAmount);
 
 									await insertDonationCommand.ExecuteNonQueryAsync();

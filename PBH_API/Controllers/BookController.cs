@@ -17,6 +17,50 @@ namespace PBH_API.Controllers
 			_connectionString = connectionString;
 		}
 
+		[HttpGet("getAllBooks")]
+
+		public async Task<IActionResult> GetAllBooks()
+		{
+			using (SqlConnection connection = new SqlConnection(_connectionString))
+			{
+				await connection.OpenAsync();
+
+				using (SqlCommand command = new SqlCommand("getAllBooks", connection))
+				{
+					command.CommandType = CommandType.StoredProcedure;
+
+					using (SqlDataReader reader = await command.ExecuteReaderAsync())
+					{
+						// Process the result set and return it as JSON
+							var books = new List<Book>();
+
+							while (await reader.ReadAsync())
+							{
+								// Map the columns to your book model properties
+								Book book = new Book();
+								{
+									book.Book_Id = reader.GetInt32(reader.GetOrdinal("Book_Id"));
+									book.Title = reader.GetString(reader.GetOrdinal("Title"));
+									book.Category = reader.GetInt32(reader.GetOrdinal("Category_Id"));
+									book.Description = reader.GetString(reader.GetOrdinal("Description"));
+									book.Media_Rating = reader.GetDecimal(reader.GetOrdinal("Media_Rating"));
+									book.Goal = reader.GetInt32(reader.GetOrdinal("Goal"));
+									book.User_Id = reader.GetInt32(reader.GetOrdinal("User_Id"));
+									book.Institution_Id = reader.GetInt32(reader.GetOrdinal("Institution_Id"));
+								};
+
+								books.Add(book);
+							}
+
+							return Ok(books);
+					}
+				}
+			}
+		}
+		[HttpGet("getAllBooksByCategory")]
+
+		public async Task<IActionResult> GetAllBooksByCategory(int Category_Id)
+
         [HttpGet("categories")]
         public async Task<IActionResult> GetBookCategories()
         {
@@ -116,17 +160,13 @@ namespace PBH_API.Controllers
 			{
 				await connection.OpenAsync();
 
-				using (SqlCommand command = new SqlCommand("getAllBooks", connection))
+				using (SqlCommand command = new SqlCommand("getAllBooksByCategory", connection))
 				{
 					command.CommandType = CommandType.StoredProcedure;
-					command.Parameters.AddWithValue("@PageSize", pageSize);
-					command.Parameters.AddWithValue("@PageNumber", pageNumber);
+					command.Parameters.AddWithValue("@Category_Id", Category_Id);
 
 					using (SqlDataReader reader = await command.ExecuteReaderAsync())
 					{
-						// Process the result set and return it as JSON
-						if (reader.HasRows)
-						{
 							var books = new List<Book>();
 
 							while (await reader.ReadAsync())
@@ -136,7 +176,7 @@ namespace PBH_API.Controllers
 								{
 									book.Book_Id = reader.GetInt32(reader.GetOrdinal("Book_Id"));
 									book.Title = reader.GetString(reader.GetOrdinal("Title"));
-									book.Category = reader.GetString(reader.GetOrdinal("Category"));
+									book.Category = reader.GetInt32(reader.GetOrdinal("Category_Id"));
 									book.Description = reader.GetString(reader.GetOrdinal("Description"));
 									book.Media_Rating = reader.GetDecimal(reader.GetOrdinal("Media_Rating"));
 									book.Goal = reader.GetInt32(reader.GetOrdinal("Goal"));
@@ -148,11 +188,7 @@ namespace PBH_API.Controllers
 							}
 
 							return Ok(books);
-						}
-						else
-						{
-							return NotFound();
-						}
+
 					}
 				}
 			}
@@ -184,7 +220,7 @@ namespace PBH_API.Controllers
 								{
 									book.Book_Id = reader.GetInt32(reader.GetOrdinal("Book_Id"));
 									book.Title = reader.GetString(reader.GetOrdinal("Title"));
-									book.Category = reader.GetString(reader.GetOrdinal("Category"));
+									book.Category = reader.GetInt32(reader.GetOrdinal("Category_Id"));
 									book.Description = reader.GetString(reader.GetOrdinal("Description"));
 									book.Media_Rating = reader.GetDecimal(reader.GetOrdinal("Media_Rating"));
 									book.Goal = reader.GetInt32(reader.GetOrdinal("Goal"));
@@ -205,5 +241,35 @@ namespace PBH_API.Controllers
 				}
 			}
 		}
+
+
+        [HttpGet("categories")]
+        public async Task<IActionResult> GetBookCategories()
+        {
+            List<BookCategories> categories = new List<BookCategories>();
+
+            using (SqlConnection connection = new SqlConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                using (SqlCommand command = new SqlCommand("dbo.GetCategoryBooks", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
+                    {
+                        while (reader.Read())
+                        {
+                            BookCategories category = new BookCategories();
+                            category.Caterogy_Id = reader.GetInt32(reader.GetOrdinal("Category_Id"));
+                            category.Category_Name = reader.GetString(reader.GetOrdinal("CategoryName"));
+                            categories.Add(category);
+                        }
+                    }
+                }
+            }
+
+            return Ok(categories);
+        }
     }
 }

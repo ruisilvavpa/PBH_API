@@ -19,7 +19,7 @@ namespace PBH_API.Controllers
 		}
 
 		[HttpPost("insertRating")]
-		public async Task<IActionResult> CreateRating(Rating rating)
+		public async Task<IActionResult> CreateRating(RatingIn rating)
 		{
 			var headers = Request.Headers;
 			if (headers.TryGetValue("Token", out var headerValue))
@@ -39,9 +39,9 @@ namespace PBH_API.Controllers
 						{
 							if (await reader.ReadAsync())
 							{
-								//rating.User_Id = reader.GetInt32(reader.GetOrdinal("User_Id"));
+								var User_Id = reader.GetInt32(reader.GetOrdinal("User_Id"));
 
-								if (rating.User_Id == 0)
+								if (User_Id == 0)
 								{
 									return Unauthorized("User not found");
 								}
@@ -50,7 +50,7 @@ namespace PBH_API.Controllers
 								{
 									insertRatingCommand.CommandType = CommandType.StoredProcedure;
 									insertRatingCommand.Parameters.AddWithValue("@Rating", rating.rating);
-									insertRatingCommand.Parameters.AddWithValue("@User_Id", rating.User_Id);
+									insertRatingCommand.Parameters.AddWithValue("@User_Id", User_Id);
 									insertRatingCommand.Parameters.AddWithValue("@Book_Id", rating.Book_Id);
 									insertRatingCommand.Parameters.AddWithValue("@Comment", rating.Comment);
 

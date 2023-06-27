@@ -387,5 +387,49 @@ namespace PBH_API.Controllers
             }
             return imagePath;
         }
-    }
+
+		[HttpGet("getWritterByBook")]
+
+		public async Task<IActionResult> GetWritterByBook(int bookId)
+		{
+			UsersOut user = new UsersOut();
+			using (SqlConnection connection = new SqlConnection(_connectionString))
+			{
+				await connection.OpenAsync();
+
+				using (SqlCommand command = new SqlCommand("getWritterByBook", connection))
+				{
+					command.CommandType = CommandType.StoredProcedure;
+					command.Parameters.AddWithValue("@Book_Id", bookId);
+
+					using (SqlDataReader reader = await command.ExecuteReaderAsync())
+					{
+						
+						while (await reader.ReadAsync())
+							{
+								// Map the columns to your book model properties
+								
+
+								user.Id = reader.GetInt32(reader.GetOrdinal("User_Id"));
+								user.Name = reader.GetString(reader.GetOrdinal("Name"));
+								user.Email = reader.GetString(reader.GetOrdinal("Email"));
+								user.Type = reader.GetInt32(reader.GetOrdinal("TypeAccount"));
+								int bioOrdinal = reader.GetOrdinal("Bio");
+								if (!reader.IsDBNull(bioOrdinal))
+								{
+									user.Bio = reader.GetString(bioOrdinal);
+								}
+							}
+
+				
+						
+					}
+				}
+                return Ok(user);
+			}
+
+		}
+
+
+	}
 }
