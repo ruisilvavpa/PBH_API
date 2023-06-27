@@ -23,29 +23,85 @@ namespace PBH_API.Controllers
 			{
 				return BadRequest(ModelState);
 			}
-			using (SqlConnection connection = new SqlConnection(_connectionString))
+
+			var headers = Request.Headers;
+			if (headers.TryGetValue("Token", out var headerValue))
 			{
-				await connection.OpenAsync();
-				using (SqlCommand command = new SqlCommand("insertBook", connection))
+				var token = headerValue.ToString();
+
+				using (SqlConnection connection = new SqlConnection(_connectionString))
 				{
-					command.CommandType = CommandType.StoredProcedure;
-					command.Parameters.AddWithValue("@Title", book.Title);
-					command.Parameters.AddWithValue("@Category", book.Category);
-					command.Parameters.AddWithValue("@Description", book.Description);
-					command.Parameters.AddWithValue("@Media_Rating", book.Media_Rating);
-					command.Parameters.AddWithValue("@Goal", book.Goal);
-					command.Parameters.AddWithValue("@User_Id", book.User_Id);
-					command.Parameters.AddWithValue("@Insitution_Id", book.Institution_Id);
+					await connection.OpenAsync();
 
+					using (SqlCommand getUserIdCommand = new SqlCommand("dbo.GetUserIdByToken", connection))
+					{
+						getUserIdCommand.CommandType = CommandType.StoredProcedure;
+						getUserIdCommand.Parameters.AddWithValue("@Token", token);
+						await getUserIdCommand.ExecuteNonQueryAsync();
 
-					await command.ExecuteNonQueryAsync();
+						using (var reader = await getUserIdCommand.ExecuteReaderAsync())
+						{
+							if (await reader.ReadAsync())
+							{
+								int userId = reader.GetInt32(reader.GetOrdinal("User_Id"));
 
-					// Return a success response
-					return Ok(book);
+								if (userId == 0)
+								{
+									return Unauthorized("User not found");
+								}
 
+								// Proceed with inserting the book
+								using (SqlCommand insertBookCommand = new SqlCommand("insertBook", connection))
+								{
+									insertBookCommand.CommandType = CommandType.StoredProcedure;
+									insertBookCommand.Parameters.AddWithValue("@Title", book.Title);
+									insertBookCommand.Parameters.AddWithValue("@Category", book.Category);
+									insertBookCommand.Parameters.AddWithValue("@Description", book.Description);
+									insertBookCommand.Parameters.AddWithValue("@Media_Rating", book.Media_Rating);
+									insertBookCommand.Parameters.AddWithValue("@Goal", book.Goal);
+									insertBookCommand.Parameters.AddWithValue("@User_Id", userId);
+									insertBookCommand.Parameters.AddWithValue("@Insitution_Id", book.Institution_Id);
+
+									await insertBookCommand.ExecuteNonQueryAsync();
+
+									// Retrieve the sum of donations by writer
+									using (SqlCommand getDonationsSumCommand = new SqlCommand("dbo.getAllDonationsSumByWritter", connection))
+									{
+										getDonationsSumCommand.CommandType = CommandType.StoredProcedure;
+										getDonationsSumCommand.Parameters.AddWithValue("@User_Id", userId);
+
+										using (var donationReader = await getDonationsSumCommand.ExecuteReaderAsync())
+										{
+											if (await donationReader.ReadAsync())
+											{
+												decimal sum = donationReader.GetDecimal(donationReader.GetOrdinal("Quant"));
+
+												var responseObj = new
+												{
+													HeaderValue = headerValue,
+													UserId = userId,
+													TotalDonations = sum,
+													Book = book
+												};
+
+												return Ok(responseObj);
+											}
+										}
+									}
+								}
+							}
+						}
+					}
 				}
+
+				return Unauthorized("User not found");
+			}
+			else
+			{
+				return NotFound("Header not provided");
 			}
 		}
+
 
 
 
@@ -149,44 +205,35 @@ namespace PBH_API.Controllers
 
 
 
+
+
+
+		[HttpGet("categories")]
+		public async Task<IActionResult> GetBookCategories()
+		{
+			using (SqlConnection connection = new SqlConnection(_connectionString))
+			{
+				await connection.OpenAsync();
+
+				using (SqlCommand command = new SqlCommand("dbo.GetCategoryBooks", connection))
+				{
+					command.CommandType = CommandType.StoredProcedure;
+
+					using (SqlDataReader reader = await command.ExecuteReaderAsync())
+					{
+						List<string> categories = new List<string>();
+
+						while (reader.Read())
+						{
+							string categoryName = reader["CategoryName"].ToString();
+							categories.Add(categoryName);
+						}
+
+						return Ok(categories);
+					}
+				}
+			}
+		}
 	}
-    [ApiController]
-    [Route("api/[controller]")]
-    public class BookController : ControllerBase
-    {
-        private readonly string _connectionString;
-
-        public BookController(string connectionString)
-        {
-            _connectionString = connectionString;
-        }
-
-        [HttpGet("categories")]
-        public async Task<IActionResult> GetBookCategories()
-        {
-            using (SqlConnection connection = new SqlConnection(_connectionString))
-            {
-                await connection.OpenAsync();
-
-                using (SqlCommand command = new SqlCommand("dbo.GetCategoryBooks", connection))
-                {
-                    command.CommandType = CommandType.StoredProcedure;
-
-                    using (SqlDataReader reader = await command.ExecuteReaderAsync())
-                    {
-                        List<string> categories = new List<string>();
-
-                        while (reader.Read())
-                        {
-                            string categoryName = reader["CategoryName"].ToString();
-                            categories.Add(categoryName);
-                        }
-
-                        return Ok(categories);
-                    }
-                }
-            }
-        }
-    }
-
 }
+
