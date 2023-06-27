@@ -7,5 +7,6 @@
         public String Email { get; set; }
         public String? Bio { get; set; }
         public int Type { get; set; }
+        public String? ImagePath { get; set; }
     }
 }

@@ -41,6 +41,7 @@ namespace PBH_API.Controllers
                         command.CommandType = CommandType.StoredProcedure;
 
                         command.Parameters.AddWithValue("@Token", token);
+                        
                         await command.ExecuteNonQueryAsync();
 
                         using (var reader = await command.ExecuteReaderAsync())
