@@ -43,8 +43,9 @@ namespace PBH_API.Controllers
                                 {
                                     return Unauthorized("User not found");
                                 }
-
-                                using (SqlCommand insertDonationCommand = new SqlCommand("dbo.insertDonation", connection))
+                                using (SqlConnection secondConnection = new SqlConnection(_connectionString)) {
+                                    await secondConnection.OpenAsync();
+                                    using (SqlCommand insertDonationCommand = new SqlCommand("dbo.insertDonation", secondConnection))
                                 {
                                     insertDonationCommand.CommandType = CommandType.StoredProcedure;
                                     insertDonationCommand.Parameters.AddWithValue("@User_Id", userId);
@@ -55,6 +56,7 @@ namespace PBH_API.Controllers
 
                                     return Ok("Donation inserted successfully");
                                 }
+                                 }
                             }
                         }
                     }
@@ -134,7 +136,7 @@ namespace PBH_API.Controllers
         }
 
         [HttpGet("sumByUserId")]
-        public async Task<IActionResult> GetAllDonationsSumByUser(int userId)
+        public async Task<IActionResult> GetAllDonationsSumByUser()
         {
             var headers = Request.Headers;
             if (headers.TryGetValue("Token", out var headerValue))
@@ -162,12 +164,6 @@ namespace PBH_API.Controllers
                                     return Unauthorized("User not found");
                                 }
 
-                                if (validatedUserId != userId)
-                                {
-                                    return Unauthorized("Access denied");
-                                }
-
-
                                 // Proceed with retrieving the sum
                                 using (SqlConnection updateConnection = new SqlConnection(_connectionString))
                                 {
@@ -175,7 +171,7 @@ namespace PBH_API.Controllers
                                     using (SqlCommand donationCommand = new SqlCommand("dbo.getAllDonationsSumByUser", updateConnection))
                                     {
                                         donationCommand.CommandType = CommandType.StoredProcedure;
-                                        donationCommand.Parameters.AddWithValue("@User_Id", userId);
+                                        donationCommand.Parameters.AddWithValue("@User_Id", validatedUserId);
 
                                         using (var donationReader = await donationCommand.ExecuteReaderAsync())
                                         {
@@ -188,7 +184,7 @@ namespace PBH_API.Controllers
                                                     var responseObj = new
                                                     {
                                                         HeaderValue = headerValue,
-                                                        UserId = userId,
+                                                        UserId = validatedUserId,
                                                         TotalDonations = sum
                                                     };
 
@@ -201,7 +197,7 @@ namespace PBH_API.Controllers
                                                     var responseObj = new
                                                     {
                                                         HeaderValue = headerValue,
-                                                        UserId = userId,
+                                                        UserId = validatedUserId,
                                                         TotalDonations = sum
                                                     };
 
@@ -225,7 +221,7 @@ namespace PBH_API.Controllers
         }
 
         [HttpGet("sumByWritter")]
-        public async Task<IActionResult> GetAllDonationsSumByWriter(int userId)
+        public async Task<IActionResult> GetAllDonationsSumByWriter()
         {
             var headers = Request.Headers;
             if (headers.TryGetValue("Token", out var headerValue))
@@ -253,11 +249,6 @@ namespace PBH_API.Controllers
                                     return Unauthorized("User not found");
                                 }
 
-                                if (validatedUserId != userId)
-                                {
-                                    return Unauthorized("Access denied");
-                                }
-
                                 // Proceed with retrieving the sum
                                 using (SqlConnection updateConnection = new SqlConnection(_connectionString))
                                 {
@@ -265,7 +256,7 @@ namespace PBH_API.Controllers
                                     using (SqlCommand donationCommand = new SqlCommand("dbo.getAllDonationsSumByWritter", updateConnection))
                                     {
                                         donationCommand.CommandType = CommandType.StoredProcedure;
-                                        donationCommand.Parameters.AddWithValue("@User_Id", userId);
+                                        donationCommand.Parameters.AddWithValue("@User_Id", validatedUserId);
 
                                         using (var donationReader = await donationCommand.ExecuteReaderAsync())
                                         {
@@ -278,7 +269,7 @@ namespace PBH_API.Controllers
                                                     var responseObj = new
                                                     {
                                                         HeaderValue = headerValue,
-                                                        UserId = userId,
+                                                        UserId = validatedUserId,
                                                         TotalDonations = sum
                                                     };
 
@@ -291,7 +282,7 @@ namespace PBH_API.Controllers
                                                     var responseObj = new
                                                     {
                                                         HeaderValue = headerValue,
-                                                        UserId = userId,
+                                                        UserId = validatedUserId,
                                                         TotalDonations = sum
                                                     };
 
