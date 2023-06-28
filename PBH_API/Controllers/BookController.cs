@@ -48,6 +48,11 @@ namespace PBH_API.Controllers
                                 book.Goal = reader.GetInt32(reader.GetOrdinal("Goal"));
                                 book.User_Id = reader.GetInt32(reader.GetOrdinal("User_Id"));
                                 book.Institution_Id = reader.GetInt32(reader.GetOrdinal("Institution_Id"));
+                                int imagePathOrdinal = reader.GetOrdinal("ImagePath");
+                                if (!reader.IsDBNull(imagePathOrdinal))
+                                {
+                                    book.ImagePath = reader.GetString(imagePathOrdinal);
+                                }
                             };
 
                             books.Add(book);
@@ -182,6 +187,11 @@ namespace PBH_API.Controllers
                                     book.Goal = reader.GetInt32(reader.GetOrdinal("Goal"));
                                     book.User_Id = reader.GetInt32(reader.GetOrdinal("User_Id"));
                                     book.Institution_Id = reader.GetInt32(reader.GetOrdinal("Institution_Id"));
+                                    int imagePathOrdinal = reader.GetOrdinal("ImagePath");
+                                    if (!reader.IsDBNull(imagePathOrdinal))
+                                    {
+                                        book.ImagePath = reader.GetString(imagePathOrdinal);
+                                    }
                                 };
 
                                 books.Add(book);
